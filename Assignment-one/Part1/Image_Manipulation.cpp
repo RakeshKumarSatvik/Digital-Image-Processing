@@ -14,22 +14,30 @@ int main(int argc, char *argv[]) {
 	int SizeX, SizeY, x1, x2, y1, y2;
 
 	// Check for proper syntax
-	if (argc < 10){
+	if (argc < 3){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name input_image.raw output_image.raw [BytesPerPixel] [SizeX] [SizeY] [X1] [Y1] [X2] [Y2]" << endl;
+		cout << "program_name input_image.raw output_image.raw" << endl;
 		return 0;
-	} else {
-		//Inputs given in the assignment
-		BytesPerPixel = atoi(argv[4]);
-		InpSizeX 	  = atoi(argv[5]);
-		InpSizeY 	  = atoi(argv[6]);
-		x1 			  = atoi(argv[7]);
-		y1 			  = atoi(argv[8]);
-		x2 			  = atoi(argv[9]);
-		y2            = atoi(argv[10]);
-		printf("Input parameters:\n\tBytes Per Pixel : %d\n\tInpSizeX : %d\n\tInpSizeY : %d\n\tx1 : %d\n\t"
-				"y1 : %d\n\tx2 : %d\n\ty2 : %d\n",BytesPerPixel, InpSizeX, InpSizeY, x1, y1, x2, y2);
 	}
+
+	//Inputs given in the assignment
+	cout << "Bytes Per Pixel : ";
+	cin >> BytesPerPixel;
+	cout << "InpSizeX : ";
+	cin >> InpSizeX;
+	cout << "InpSizeY : ";
+	cin >> InpSizeY;
+	cout << "X1 co-ordinate : ";
+	cin >> x1;
+	cout << "Y1 co-ordinate : ";
+	cin >> y1;
+	cout << "X2 co-ordinate : ";
+	cin >> x2;
+	cout << "Y1 co-ordinate : ";
+	cin >> y2;
+
+	printf("Input parameters:\n\tBytes Per Pixel : %d\n\tInpSizeX : %d\n\tInpSizeY : %d\n\tx1 : %d\n\t"
+			"y1 : %d\n\tx2 : %d\n\ty2 : %d\n",BytesPerPixel, InpSizeX, InpSizeY, x1, y1, x2, y2);
 
 	SizeX = x2 - x1 + 1;
 	SizeY = y2 - y1 + 1;
