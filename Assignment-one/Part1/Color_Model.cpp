@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	int BytesPerPixel;
 	int width, height, hslM, hslm2, hslC;
 	int hmin, smin, lmin, hmax, smax, lmax;
-	vector<int> temp1, temp2, temp3;
+	vector<float> temp1, temp2, temp3;
 
 	// Check for proper syntax
 	if (argc < 3){
@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
 	// Allocate image data array
 	unsigned char *Imagedata, *CyanImagedata, *MagentaImagedata, *YellowImagedata;
 	unsigned char *HueImagedata, *SaturationImagedata, *LightImagedata;
+	float         *tempHue, *tempSaturation, *tempLight;
 
 	Imagedata        	= new (nothrow) unsigned char[width * height * BytesPerPixel];
 	CyanImagedata    	= new (nothrow) unsigned char[width * height];
@@ -50,8 +51,12 @@ int main(int argc, char *argv[])
 	SaturationImagedata = new (nothrow) unsigned char[width * height];
 	LightImagedata  	= new (nothrow) unsigned char[width * height];
 
+	tempHue				= new (nothrow) float[width * height];
+	tempSaturation		= new (nothrow) float[width * height];
+	tempLight			= new (nothrow) float[width * height];
+
 	// Read image (filename specified by first argument) into image data matrix
-	if (!(file=fopen("C:\\Users\\RakeshKumarSatvik\\workspace\\EE569-1-P1\\Debug\\Turtle.raw","rb"))) {
+	if (!(file=fopen(argv[1],"rb"))) {
 		cout << "Cannot open file: " << argv[1] <<endl;
 		exit(1);
 	}
@@ -73,40 +78,40 @@ int main(int argc, char *argv[])
 					*(Imagedata + (i * width + j) * BytesPerPixel + 2));
 			hslC = hslM - hslm2;
 
-			cout << "hslM " << hslM << " hslm2 " << hslm2 << " hslC " << hslC << " width " << j << " height " << i << endl;
+//			cout << "hslM " << hslM << " hslm2 " << hslm2 << " hslC " << hslC << " width " << j << " height " << i << endl;
 
 			if(hslC == 0) {
-				*(HueImagedata + (i * width) + j) = 0;
-				temp1.push_back(*(HueImagedata + (i * width) + j));
+				*(tempHue + (i * width) + j) = 0;
+				temp1.push_back(*(tempHue + (i * width) + j));
 			} else if(hslM == *(Imagedata + (i * width + j) * BytesPerPixel)) {
-				*(HueImagedata + (i * width) + j) = 60 * (((*(Imagedata + (i * width + j) * BytesPerPixel + 1) -
+				*(tempHue + (i * width) + j) = 60 * (((*(Imagedata + (i * width + j) * BytesPerPixel + 1) -
 						*(Imagedata + (i * width + j) * BytesPerPixel + 2)) / hslC) % 6);
-				temp1.push_back(*(HueImagedata + (i * width) + j));
+				temp1.push_back(*(tempHue + (i * width) + j));
 			} else if(hslM == *(Imagedata + (i * width + j) * BytesPerPixel + 1)) {
-				*(HueImagedata + (i * width) + j) = 60 * (((*(Imagedata + (i * width + j) * BytesPerPixel + 2) -
-						*(Imagedata + (i * width + j) * BytesPerPixel)) / hslC) + 2);
-				temp1.push_back(*(HueImagedata + (i * width) + j));
+				*(tempHue + (i * width) + j) = 60 * ((float(*(Imagedata + (i * width + j) * BytesPerPixel + 2) -
+						*(Imagedata + (i * width + j) * BytesPerPixel)) / float(hslC)) + 2);
+				temp1.push_back(*(tempHue + (i * width) + j));
 			} else if(hslM == *(Imagedata + (i * width + j) * BytesPerPixel + 2)) {
-				*(HueImagedata + (i * width) + j) = 60 * (((*(Imagedata + (i * width + j) * BytesPerPixel) -
-						*(Imagedata + (i * width + j) * BytesPerPixel + 1)) / hslC) + 4);
-				temp1.push_back(*(HueImagedata + (i * width) + j));
+				*(tempHue + (i * width) + j) = 60 * ((float(*(Imagedata + (i * width + j) * BytesPerPixel) -
+						*(Imagedata + (i * width + j) * BytesPerPixel + 1)) / float(hslC)) + 4);
+				temp1.push_back(*(tempHue + (i * width) + j));
 			}
 
-			*(LightImagedata + (i * width) + j) = (hslM + hslm2) / 2;
-			temp2.push_back(*(LightImagedata + (i * width) + j));
+			*(tempLight + (i * width) + j) = (hslM + hslm2) / 2;
+			temp2.push_back(*(tempLight + (i * width) + j));
 
-			if(*(LightImagedata + (i * width) + j) == 0) {
-				*(SaturationImagedata + (i * width) + j) = 0;
-				temp3.push_back(*(SaturationImagedata + (i * width) + j));
-			} else if(0 < *(LightImagedata + (i * width) + j) and *(LightImagedata + (i * width) + j) < 0.5) {
-				*(SaturationImagedata + (i * width) + j) = hslC / 2 * *(LightImagedata + (i * width) + j);
-				temp3.push_back(*(SaturationImagedata + (i * width) + j));
+			if(*(tempLight + (i * width) + j) == 0) {
+				*(tempSaturation + (i * width) + j) = 0;
+				temp3.push_back(*(tempSaturation + (i * width) + j));
+			} else if(0 < *(tempLight + (i * width) + j) and *(tempLight + (i * width) + j) < 0.5) {
+				*(tempSaturation + (i * width) + j) = float(hslC) / float(2 * *(tempLight + (i * width) + j));
+				temp3.push_back(*(tempSaturation + (i * width) + j));
 			} else {
-				if (*(LightImagedata + (i * width) + j) != 1)
-					*(SaturationImagedata + (i * width) + j) = hslC / (2 - 2 * *(LightImagedata + (i * width) + j));
+				if (*(tempLight + (i * width) + j) != 1)
+					*(tempSaturation + (i * width) + j) = float(hslC) / float(2 - 2 * *(tempLight + (i * width) + j));
 				else
-					*(SaturationImagedata + (i * width) + j) = hslC / (2 - *(LightImagedata + (i * width) + j));
-				temp3.push_back(*(SaturationImagedata + (i * width) + j));
+					*(tempSaturation + (i * width) + j) = float(hslC) / float(2 - *(tempLight + (i * width) + j));
+				temp3.push_back(*(tempSaturation + (i * width) + j));
 			}
 		}
 	}
@@ -121,16 +126,15 @@ int main(int argc, char *argv[])
 	smin = temp3.front();
 	smax = temp3.back();
 
-	cout << "hmin : " << hmin << " hmax : " << hmax << " smax : " << smax << " smin : " << smin << " lmax : " << lmax << " lmin : " << lmin << endl;
-	cout << "Reached here" << endl;
+//	cout << "hmin : " << hmin << " hmax : " << hmax << " smax : " << smax << " smin : " << smin << " lmax : " << lmax << " lmin : " << lmin << endl;
 
-//	for(int i = 0; i < height; i++) {
-//		for(int j = 0; j < width; j++) {
-//			*(HueImagedata        + (i * width) + j) = ((*(HueImagedata        + (i * width) + j) - hmin) / (hmax - hmin)) * 255;
-//			*(SaturationImagedata + (i * width) + j) = ((*(SaturationImagedata + (i * width) + j) - smin) / (smax - smin)) * 255;
-//			*(LightImagedata      + (i * width) + j) = ((*(LightImagedata      + (i * width) + j) - lmin) / (lmax - lmin)) * 255;
-//		}
-//	}
+	for(int i = 0; i < height; i++) {
+		for(int j = 0; j < width; j++) {
+			*(HueImagedata        + (i * width) + j) = char((float(*(tempHue        + (i * width) + j) - hmin) / float(hmax - hmin)) * 255);
+			*(SaturationImagedata + (i * width) + j) = char((float(*(tempSaturation + (i * width) + j) - smin) / float(smax - smin)) * 255);
+			*(LightImagedata      + (i * width) + j) = char((float(*(tempLight      + (i * width) + j) - lmin) / float(lmax - lmin)) * 255);
+		}
+	}
 
 	// Write image data (filename specified by second argument) from image data matrix
 	if (!(file=fopen(argv[2],"wb"))) {
