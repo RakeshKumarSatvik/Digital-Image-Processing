@@ -19,9 +19,10 @@ int main(int argc, char *argv[])
 	// Define file pointer and variables
 	FILE *file;
 	int BytesPerPixel;
-	int width, height, hslM, hslm2, hslC;
-	int hmin, smin, lmin, hmax, smax, lmax;
+	int width, height, hmin, smin, lmin, hmax, smax, lmax;
 	vector<float> temp1, temp2, temp3;
+	float red, green, blue;
+	float hslM, hslm2, hslC;
 
 	// Check for proper syntax
 	if (argc < 3){
@@ -67,37 +68,37 @@ int main(int argc, char *argv[])
 	for(int i = 0; i < height; i++) {
 		for(int j = 0; j < width; j++) {
 			/*CMY Color Model*/
-			*(CyanImagedata    + (i * width) + j) = 1 - *(Imagedata + (i * width + j) * BytesPerPixel);
-			*(MagentaImagedata + (i * width) + j) = 1 - *(Imagedata + (i * width + j) * BytesPerPixel + 1);
-			*(YellowImagedata  + (i * width) + j) = 1 - *(Imagedata + (i * width + j) * BytesPerPixel + 2);
+			red   = float(*(Imagedata + (i * width + j) * BytesPerPixel)) / 255.0;
+			green = float(*(Imagedata + (i * width + j) * BytesPerPixel + 1)) / 255.0;
+			blue  = float(*(Imagedata + (i * width + j) * BytesPerPixel + 2)) / 255.0;
+
+			*(CyanImagedata    + (i * width) + j) = 255 - *(Imagedata + (i * width + j) * BytesPerPixel);
+			*(MagentaImagedata + (i * width) + j) = 255 - *(Imagedata + (i * width + j) * BytesPerPixel + 1);
+			*(YellowImagedata  + (i * width) + j) = 255 - *(Imagedata + (i * width + j) * BytesPerPixel + 2);
 
 			/*HSL Color Model*/
-			hslM = max(max(*(Imagedata + (i * width + j) * BytesPerPixel), *(Imagedata + (i * width + j) * BytesPerPixel + 1)),
-					*(Imagedata + (i * width + j) * BytesPerPixel + 2));
-			hslm2 = min(min(*(Imagedata + (i * width + j) * BytesPerPixel), *(Imagedata + (i * width + j) * BytesPerPixel + 1)),
-					*(Imagedata + (i * width + j) * BytesPerPixel + 2));
-			hslC = hslM - hslm2;
+			hslM  = max(max(red, green), blue);
+			hslm2 = min(min(red, green), blue);
+			hslC  = hslM - hslm2;
 
 //			cout << "hslM " << hslM << " hslm2 " << hslm2 << " hslC " << hslC << " width " << j << " height " << i << endl;
 
 			if(hslC == 0) {
 				*(tempHue + (i * width) + j) = 0;
 				temp1.push_back(*(tempHue + (i * width) + j));
-			} else if(hslM == *(Imagedata + (i * width + j) * BytesPerPixel)) {
-				*(tempHue + (i * width) + j) = 60 * (((*(Imagedata + (i * width + j) * BytesPerPixel + 1) -
-						*(Imagedata + (i * width + j) * BytesPerPixel + 2)) / hslC) % 6);
+			} else if(hslM == red) {
+				*(tempHue + (i * width) + j) = 60 * (int((green -
+						blue) / hslC) % 6);
 				temp1.push_back(*(tempHue + (i * width) + j));
-			} else if(hslM == *(Imagedata + (i * width + j) * BytesPerPixel + 1)) {
-				*(tempHue + (i * width) + j) = 60 * ((float(*(Imagedata + (i * width + j) * BytesPerPixel + 2) -
-						*(Imagedata + (i * width + j) * BytesPerPixel)) / float(hslC)) + 2);
+			} else if(hslM == green) {
+				*(tempHue + (i * width) + j) = 60 * ((float(blue - red) / float(hslC)) + 2);
 				temp1.push_back(*(tempHue + (i * width) + j));
-			} else if(hslM == *(Imagedata + (i * width + j) * BytesPerPixel + 2)) {
-				*(tempHue + (i * width) + j) = 60 * ((float(*(Imagedata + (i * width + j) * BytesPerPixel) -
-						*(Imagedata + (i * width + j) * BytesPerPixel + 1)) / float(hslC)) + 4);
+			} else if(hslM == blue) {
+				*(tempHue + (i * width) + j) = 60 * ((float(red - green) / float(hslC)) + 4);
 				temp1.push_back(*(tempHue + (i * width) + j));
 			}
 
-			*(tempLight + (i * width) + j) = (hslM + hslm2) / 2;
+			*(tempLight + (i * width) + j) = float(hslM + hslm2) / 2.0;
 			temp2.push_back(*(tempLight + (i * width) + j));
 
 			if(*(tempLight + (i * width) + j) == 0) {
@@ -107,10 +108,7 @@ int main(int argc, char *argv[])
 				*(tempSaturation + (i * width) + j) = float(hslC) / float(2 * *(tempLight + (i * width) + j));
 				temp3.push_back(*(tempSaturation + (i * width) + j));
 			} else {
-				if (*(tempLight + (i * width) + j) != 1)
-					*(tempSaturation + (i * width) + j) = float(hslC) / float(2 - 2 * *(tempLight + (i * width) + j));
-				else
-					*(tempSaturation + (i * width) + j) = float(hslC) / float(2 - *(tempLight + (i * width) + j));
+				*(tempSaturation + (i * width) + j) = float(hslC) / float(2.0 - float(2 * *(tempLight + (i * width) + j)));
 				temp3.push_back(*(tempSaturation + (i * width) + j));
 			}
 		}
@@ -119,9 +117,11 @@ int main(int argc, char *argv[])
 	sort(temp1.begin(), temp1.end());
 	hmin = temp1.front();
 	hmax = temp1.back();
+
 	sort(temp2.begin(), temp2.end());
 	lmin = temp2.front();
 	lmax = temp2.back();
+
 	sort(temp3.begin(), temp3.end());
 	smin = temp3.front();
 	smax = temp3.back();
