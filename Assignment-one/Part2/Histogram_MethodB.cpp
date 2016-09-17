@@ -20,10 +20,9 @@ int main(int argc, char *argv[])
 	FILE *file;
 	int BytesPerPixel, count[256] = {0};
 	int width, height, count_of_pixels, no_of_pixels[256] = {0}, tmpH, tmpW, tmpI;
-	vector<int> prev_to_fill;
 	vector<vector<pair<int,int> > > store_values;
 	pair<int, int> temp;
-	vector<pair<int,int> > a;
+	vector<pair<int,int> > initial;
 
 	// Check for proper syntax
 	if (argc < 3){
@@ -39,14 +38,14 @@ int main(int argc, char *argv[])
 	cout << "Height : ";
 	cin >> height;
 
-	cout << "Bytes Per Pixel : " << BytesPerPixel << "Width :" << width << "Height :" << height << endl;
+	cout << "Bytes Per Pixel : " << BytesPerPixel << " Width :" << width << " Height :" << height << endl;
 	// Allocate image data array
 	unsigned char *Imagedata;
 
 	Imagedata = new (nothrow) unsigned char[width * height * BytesPerPixel];
 
 	// Read image (filename specified by first argument) into image data matrix
-	if (!(file=fopen("C:\\Users\\RakeshKumarSatvik\\workspace\\EE569-1-P2\\Debug\\Beach_dark.raw","rb"))) {
+	if (!(file=fopen(argv[1],"rb"))) {
 		cout << "Cannot open file: " << argv[1] <<endl;
 		exit(1);
 	}
@@ -54,31 +53,36 @@ int main(int argc, char *argv[])
 	fclose(file);
 
 	count_of_pixels = width * height / 256;
-	count_of_pixels += 1;
+	cout << "count of pixels : " << count_of_pixels << endl;
 
-	a.push_back(make_pair(0,0));
+	for(int k = 0; k < BytesPerPixel; k++) {
+		store_values.clear();
+		initial.push_back(make_pair(0,0));
+		memset(count, 0, sizeof(int) * 256);
+		memset(no_of_pixels, 0, sizeof(int) * 256);
 
-	for(int i = 0; i < 256; i++) {
-		store_values.push_back(a);
-	}
-
-	for(int i = 0; i < height; i++) {
-		for(int j = 0; j < width; j++) {
-			count[int(*(Imagedata + (j + i * width) * BytesPerPixel))]++;
-			store_values.at(int(*(Imagedata + (j + i * width) * BytesPerPixel))).push_back(make_pair(j, i));
+		for(int i = 0; i < 256; i++) {
+			store_values.push_back(initial);
 		}
-	}
 
-	for(int i = 0; i < 256; i++) {
-		tmpI = i;
-		for(int j = 1; j <= count[i]; j++) {
-			tmpW = store_values.at(i).at(j).first;
-			tmpH = store_values.at(i).at(j).second;
-			no_of_pixels[tmpI]++;
-			if(no_of_pixels[tmpI] <= count_of_pixels) {
-				*(Imagedata + (tmpW + tmpH * width) * BytesPerPixel) = tmpI;
-			} else {
-				*(Imagedata + (tmpW + tmpH * width) * BytesPerPixel) = tmpI++;
+		for(int i = 0; i < height; i++) {
+			for(int j = 0; j < width; j++) {
+				count[int(*(Imagedata + (j + i * width) * BytesPerPixel + k))]++;
+				store_values.at(int(*(Imagedata + (j + i * width) * BytesPerPixel + k))).push_back(make_pair(j, i));
+			}
+		}
+
+		tmpI = 0;
+		for(int i = 0; i < 256; i++) {
+			for(int j = 1; j <= count[i]; j++) {
+				tmpW = store_values.at(i).at(j).first;
+				tmpH = store_values.at(i).at(j).second;
+				no_of_pixels[tmpI]++;
+				if(no_of_pixels[tmpI] <= count_of_pixels) {
+					*(Imagedata + (tmpW + tmpH * width) * BytesPerPixel + k) = tmpI;
+				} else {
+					*(Imagedata + (tmpW + tmpH * width) * BytesPerPixel + k) = tmpI++;
+				}
 			}
 		}
 	}
