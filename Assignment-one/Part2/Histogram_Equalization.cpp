@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
+#include <string.h>
 
 using namespace std;
 
@@ -18,9 +19,10 @@ int main(int argc, char *argv[])
 	// Define file pointer and variables
 	FILE *file;
 	int BytesPerPixel;
-	int width, height, count[255] = {0};
+	int width, height, count[256] = {0};
 	vector<float> probability, cdf;
-	vector<int> final_bit;
+	vector<int> initial;
+	vector<vector<int> > final_bit;
 
 	// Check for proper syntax
 	if (argc < 3){
@@ -49,28 +51,34 @@ int main(int argc, char *argv[])
 	fread(Imagedata, sizeof(unsigned char), width * height * BytesPerPixel, file);
 	fclose(file);
 
-	for(int i = 0; i < height; i++) {
-		for(int j = 0; j < width; j++) {
-			count[int(*(Imagedata + (j + i * width) * BytesPerPixel))]++;
+	for(int k = 0; k < BytesPerPixel; k++) {
+		final_bit.push_back(initial);
+		cdf.clear();
+		probability.clear();
+		memset(count, 0, sizeof(int) * 256);
+
+		for(int i = 0; i < height; i++) {
+			for(int j = 0; j < width; j++) {
+				count[int(*(Imagedata + (j + i * width) * BytesPerPixel + k))]++;
+			}
+		}
+
+		for(int i = 0; i < 255; i++) {
+			probability.push_back(float(count[i]) / float(width * height));
+			if(i > 0)
+				cdf.push_back(cdf[i-1] + probability[i]);
+			else
+				cdf.push_back(probability[i]);
+
+			final_bit.at(k).push_back(cdf.back() * 255);
+		}
+
+		for(int i = 0; i < height; i++) {
+			for(int j = 0; j < width; j++) {
+				*(Imagedata + (j + i * width) * BytesPerPixel + k) = final_bit.at(k).at(int(*(Imagedata + (j + i * width) * BytesPerPixel + k)));
+			}
 		}
 	}
-
-	for(int i = 0; i < 255; i++) {
-		probability.push_back(float(count[i]) / float(width * height));
-		if(i > 0)
-			cdf.push_back(cdf[i-1] + probability[i]);
-		else
-			cdf.push_back(probability[i]);
-
-		final_bit.push_back(cdf.back() * 255);
-	}
-
-	for(int i = 0; i < height; i++) {
-		for(int j = 0; j < width; j++) {
-			*(Imagedata + (j + i * width) * BytesPerPixel) = final_bit.at(int(*(Imagedata + (j + i * width) * BytesPerPixel)));
-		}
-	}
-
 	// Write image data (filename specified by second argument) from image data matrix
 	if (!(file=fopen(argv[2],"wb"))) {
 		cout << "Cannot open file: " << argv[2] << endl;
