@@ -1,9 +1,11 @@
-// This sample code reads in image data from a RAW image file and
-// writes it into another file
-
-// NOTE:	The code assumes that the image is of size 256 x 256 and is in the
-//			RAW format. You will need to make corresponding changes to
-//			accommodate images of different sizes and/or types
+/*
+	Name            : Rakesh Kumar Satvik
+	USC ID          : 8772-6992-51
+	USC email       : satvik@usc.edu
+	Submission date : 18/09/2016
+	
+	File            : This code is for getting HSL and CMY outputs.
+*/
 
 #include <stdio.h>
 #include <iostream>
@@ -25,17 +27,17 @@ int main(int argc, char *argv[])
 	float hslM, hslm2, hslC;
 
 	// Check for proper syntax
-	if (argc < 3){
+	if (argc < 2){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		cout << "program_name input_image.raw" << endl;
 		return 0;
 	}
 
-	cout << "Bytes Per Pixel : ";
+	cout << "Please enter Bytes Per Pixel : ";
 	cin >> BytesPerPixel;
-	cout << "Width : ";
+	cout << "Please enter Width of input image: ";
 	cin >> width;
-	cout << "Height : ";
+	cout << "Please enter Height of input image: ";
 	cin >> height;
 
 	// Allocate image data array
@@ -43,6 +45,7 @@ int main(int argc, char *argv[])
 	unsigned char *HueImagedata, *SaturationImagedata, *LightImagedata;
 	float         *tempHue, *tempSaturation, *tempLight;
 
+	// Allocation of image
 	Imagedata        	= new (nothrow) unsigned char[width * height * BytesPerPixel];
 	CyanImagedata    	= new (nothrow) unsigned char[width * height];
 	MagentaImagedata 	= new (nothrow) unsigned char[width * height];
@@ -126,8 +129,6 @@ int main(int argc, char *argv[])
 	smin = temp3.front();
 	smax = temp3.back();
 
-//	cout << "hmin : " << hmin << " hmax : " << hmax << " smax : " << smax << " smin : " << smin << " lmax : " << lmax << " lmin : " << lmin << endl;
-
 	for(int i = 0; i < height; i++) {
 		for(int j = 0; j < width; j++) {
 			*(HueImagedata        + (i * width) + j) = char((float(*(tempHue        + (i * width) + j) - hmin) / float(hmax - hmin)) * 255);
@@ -136,16 +137,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// Write image data (filename specified by second argument) from image data matrix
-	if (!(file=fopen(argv[2],"wb"))) {
-		cout << "Cannot open file: " << argv[2] << endl;
-		exit(1);
-	}
-	fwrite(Imagedata, sizeof(unsigned char), width * height * BytesPerPixel, file);
-	fclose(file);
-
 	//Write CyanImagedata
-	if (!(file=fopen(argv[3],"wb"))) {
+	if (!(file=fopen("CyanImage.raw","wb"))) {
 		cout << "Cannot open file: " << argv[2] << endl;
 		exit(1);
 	}
@@ -153,7 +146,7 @@ int main(int argc, char *argv[])
 	fclose(file);
 
 	//Write MagentaImagedata
-	if (!(file=fopen(argv[4],"wb"))) {
+	if (!(file=fopen("MagentaImage.raw","wb"))) {
 		cout << "Cannot open file: " << argv[2] << endl;
 		exit(1);
 	}
@@ -161,7 +154,7 @@ int main(int argc, char *argv[])
 	fclose(file);
 
 	//Write YellowImagedata
-	if (!(file=fopen(argv[5],"wb"))) {
+	if (!(file=fopen("YellowImage.raw","wb"))) {
 		cout << "Cannot open file: " << argv[2] << endl;
 		exit(1);
 	}
@@ -169,7 +162,7 @@ int main(int argc, char *argv[])
 	fclose(file);
 
 	//Write HueImagedata
-	if (!(file=fopen(argv[6],"wb"))) {
+	if (!(file=fopen("HueImage.raw","wb"))) {
 		cout << "Cannot open file: " << argv[2] << endl;
 		exit(1);
 	}
@@ -177,7 +170,7 @@ int main(int argc, char *argv[])
 	fclose(file);
 
 	//Write SaturationImagedata
-	if (!(file=fopen(argv[7],"wb"))) {
+	if (!(file=fopen("SaturationImage.raw","wb"))) {
 		cout << "Cannot open file: " << argv[2] << endl;
 		exit(1);
 	}
@@ -185,7 +178,7 @@ int main(int argc, char *argv[])
 	fclose(file);
 
 	//Write LightImagedata
-	if (!(file=fopen(argv[8],"wb"))) {
+	if (!(file=fopen("LightImage.raw","wb"))) {
 		cout << "Cannot open file: " << argv[2] << endl;
 		exit(1);
 	}

@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	// Check for proper syntax
 	if (argc < 3){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		cout << "program_name input_image_no_noise.raw filtered_image.raw" << endl;
 		return 0;
 	}
 
@@ -44,16 +44,16 @@ int main(int argc, char *argv[])
 	SecondImagedata = new (nothrow) unsigned char[width * height * BytesPerPixel];
 
 	// Read image (filename specified by first argument) into image data matrix
-	if (!(file=fopen("C:\\Users\\RakeshKumarSatvik\\workspace\\EE569-1-P3-A\\Debug\\Lena.raw ","rb"))) {
-		cout << "Cannot open file: " << argv[1] <<endl;
+	if (!(file=fopen(argv[1],"rb"))) {
+		cout << "1 Cannot open file: " << argv[1] <<endl;
 		exit(1);
 	}
 	fread(Imagedata, sizeof(unsigned char), width * height * BytesPerPixel, file);
 	fclose(file);
 
 	// Read image (filename specified by first argument) into image data matrix
-	if (!(file=fopen("C:\\Users\\RakeshKumarSatvik\\workspace\\EE569-1-P3-A\\Debug\\Lena_noisy.raw ","rb"))) {
-		cout << "Cannot open file: " << argv[1] <<endl;
+	if (!(file=fopen(argv[2],"rb"))) {
+		cout << "2 Cannot open file: " << argv[2] <<endl;
 		exit(1);
 	}
 	fread(SecondImagedata, sizeof(unsigned char), width * height * BytesPerPixel, file);

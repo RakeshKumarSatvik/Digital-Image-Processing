@@ -1,9 +1,11 @@
-// This sample code reads in image data from a RAW image file and
-// writes it into another file
-
-// NOTE:	The code assumes that the image is of size 256 x 256 and is in the
-//			RAW format. You will need to make corresponding changes to
-//			accommodate images of different sizes and/or types
+/*
+	Name            : Rakesh Kumar Satvik
+	USC ID          : 8772-6992-51
+	USC email       : satvik@usc.edu
+	Submission date : 18/09/2016
+	
+	File            : This code is for Histogram equalization using transfer function based approach.
+*/
 
 #include <stdio.h>
 #include <iostream>
@@ -13,9 +15,8 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
-
-{
+/* Main function */
+int main(int argc, char *argv[]) {
 	// Define file pointer and variables
 	FILE *file;
 	int BytesPerPixel;
@@ -25,22 +26,23 @@ int main(int argc, char *argv[])
 	vector<vector<int> > final_bit;
 
 	// Check for proper syntax
-	if (argc < 3){
+	if (argc < 2){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		cout << "program_name input_image.raw" << endl;
 		return 0;
 	}
 
-	cout << "Bytes Per Pixel : ";
+	cout << "Please enter Bytes Per Pixel : ";
 	cin >> BytesPerPixel;
-	cout << "Width : ";
+	cout << "Please enter Width of input image: ";
 	cin >> width;
-	cout << "Height : ";
+	cout << "Please enter Height of input image: ";
 	cin >> height;
 
 	// Allocate image data array
 	unsigned char *Imagedata;
 
+	// Allocation of image
 	Imagedata = new (nothrow) unsigned char[width * height * BytesPerPixel];
 
 	// Read image (filename specified by first argument) into image data matrix
@@ -51,19 +53,24 @@ int main(int argc, char *argv[])
 	fread(Imagedata, sizeof(unsigned char), width * height * BytesPerPixel, file);
 	fclose(file);
 
+	// Loop through each channel in the input image	
 	for(int k = 0; k < BytesPerPixel; k++) {
+		// Clear the vectors so that we can reuse them for each channel
 		final_bit.push_back(initial);
 		cdf.clear();
 		probability.clear();
 		memset(count, 0, sizeof(int) * 256);
 
+		// Loop through the height of the input image	
 		for(int i = 0; i < height; i++) {
+			// Loop through the width of the input image
 			for(int j = 0; j < width; j++) {
 				count[int(*(Imagedata + (j + i * width) * BytesPerPixel + k))]++;
 			}
 		}
 
-		for(int i = 0; i < 255; i++) {
+		// Loop through each pixel intensity value
+		for(int i = 0; i < 256; i++) {
 			probability.push_back(float(count[i]) / float(width * height));
 			if(i > 0)
 				cdf.push_back(cdf[i-1] + probability[i]);
@@ -73,14 +80,16 @@ int main(int argc, char *argv[])
 			final_bit.at(k).push_back(cdf.back() * 255);
 		}
 
+		// Loop through the height of the input image	
 		for(int i = 0; i < height; i++) {
+			// Loop through the width of the input image
 			for(int j = 0; j < width; j++) {
 				*(Imagedata + (j + i * width) * BytesPerPixel + k) = final_bit.at(k).at(int(*(Imagedata + (j + i * width) * BytesPerPixel + k)));
 			}
 		}
 	}
 	// Write image data (filename specified by second argument) from image data matrix
-	if (!(file=fopen(argv[2],"wb"))) {
+	if (!(file=fopen("HistogramMethodA.raw","wb"))) {
 		cout << "Cannot open file: " << argv[2] << endl;
 		exit(1);
 	}
