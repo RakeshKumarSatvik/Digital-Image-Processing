@@ -6,6 +6,7 @@
 
 	File            : This code is for Non-local means noise removal algorithm.
 */
+#include <vector>
 
 #ifndef IMAGE_H_
 #define IMAGE_H_
@@ -16,14 +17,12 @@ public:
 	virtual ~Image();
 	void allocate_image();
 	void read_image(char *filename);
-	void write_image(char *filename);
-	void warped_image();
-	int bilinear_interpolation(float pPrime, int qPrime, int k);
+	void write_image(char *filename, unsigned char *data, int inp_width, int inp_height);
+	int bilinear_interpolation(unsigned char *data, float pPrime, int qPrime, int k, int inp_width);
+	void dithering();
 
-private:
 	// Allocate image data array
 	unsigned char *Imagedata;
-	unsigned char *OutputImagedata;
 
 	int width;
 	int height;
