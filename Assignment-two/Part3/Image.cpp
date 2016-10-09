@@ -159,7 +159,7 @@ void Image::hole_filling() {
 	}
 }
 
-void Image::generate_table() {
+vector<vector<int> > Image::generate_table(morphology type, int table) {
     this->shrinking_first_table = {
     		{0, 0, 1, 0, 1, 0, 0, 0, 0}, //s_bond_one_1
             {1, 0, 0, 0, 1, 0, 0, 0, 0}, //s_bond_one_2
@@ -218,21 +218,102 @@ void Image::generate_table() {
             {1, 1, 1, 0, 1, 1, 1, 1, 1}, //stk_bond_ten_1
             {1, 1, 1, 1, 1, 1, 1, 0, 1}, //stk_bond_ten_2
             {1, 1, 1, 1, 1, 0, 1, 1, 1}, //stk_bond_ten_3
-            {1, 0, 1, 1, 1, 1, 1, 1, 1} //stk_bond_ten_4
+            {1, 0, 1, 1, 1, 1, 1, 1, 1}  //stk_bond_ten_4
     };
 
-//    {1, 1, 1, 1, 1, 1, 0, 1, 1}, //k_bond_eleven_1
-//    {1, 1, 1, 1, 1, 1, 1, 1, 0}, //k_bond_eleven_2
-//    {1, 1, 0, 1, 1, 1, 1, 1, 1}, //k_bond_eleven_3
-//    {0, 1, 1, 1, 1, 1, 1, 1, 1}, //k_bond_eleven_4
-//    {0, 1, 0, 0, 1, 1, 0, 0, 0}, //tk_bond_four_1
-//    {0, 1, 0, 1, 1, 0, 0, 0, 0}, //tk_bond_four_2
-//    {0, 0, 0, 1, 1, 0, 0, 1, 0}, //tk_bond_four_3
-//    {0, 0, 0, 0, 1, 1, 0, 1, 0}, //tk_bond_four_4
+    this->thinning_first_table = {
+    	    {0, 1, 0, 0, 1, 1, 0, 0, 0}, //tk_bond_four_1
+    	    {0, 1, 0, 1, 1, 0, 0, 0, 0}, //tk_bond_four_2
+    	    {0, 0, 0, 1, 1, 0, 0, 1, 0}, //tk_bond_four_3
+    	    {0, 0, 0, 0, 1, 1, 0, 1, 0}, //tk_bond_four_4
+            {0, 0, 1, 0, 1, 1, 0, 0, 1}, //stk_bond_four_1
+            {1, 1, 1, 0, 1, 0, 0, 0, 0}, //stk_bond_four_2
+            {1, 0, 0, 1, 1, 0, 1, 0, 0}, //stk_bond_four_3
+            {0, 0, 0, 0, 1, 0, 1, 1, 1}, //stk_bond_four_4
+            {1, 1, 0, 0, 1, 1, 0, 0, 0}, //st_bond_five_1
+            {0, 1, 0, 0, 1, 1, 0, 0, 1}, //st_bond_five_2
+            {0, 1, 1, 1, 1, 0, 0, 0, 0}, //st_bond_five_3
+            {0, 0, 1, 0, 1, 1, 0, 1, 0}, //st_bond_five_4
+            {0, 1, 1, 0, 1, 1, 0, 0, 0}, //st_bond_five_5
+            {1, 1, 0, 1, 1, 0, 0, 0, 0}, //st_bond_five_6
+            {0, 0, 0, 1, 1, 0, 1, 1, 0}, //st_bond_five_7
+            {0, 0, 0, 0, 1, 1, 0, 1, 1}, //st_bond_five_8
+            {1, 1, 0, 0, 1, 1, 0, 0, 1}, //st_bond_six_1
+            {0, 1, 1, 1, 1, 0, 1, 0, 0}, //st_bond_six_2
+            {1, 1, 1, 0, 1, 1, 0, 0, 0}, //stk_bond_six_1
+            {0, 1, 1, 0, 1, 1, 0, 0, 1}, //stk_bond_six_2
+            {1, 1, 1, 1, 1, 0, 0, 0, 0}, //stk_bond_six_3
+            {1, 1, 0, 1, 1, 0, 1, 0, 0}, //stk_bond_six_4
+            {1, 0, 0, 1, 1, 0, 1, 1, 0}, //stk_bond_six_5
+            {0, 0, 0, 1, 1, 0, 1, 1, 1}, //stk_bond_six_6
+            {0, 0, 0, 0, 1, 1, 1, 1, 1}, //stk_bond_six_7
+            {0, 0, 1, 0, 1, 1, 0, 1, 1}, //stk_bond_six_8
+            {1, 1, 1, 0, 1, 1, 0, 0, 1}, //stk_bond_seven_1
+            {1, 1, 1, 1, 1, 0, 1, 0, 0}, //stk_bond_seven_2
+            {1, 0, 0, 1, 1, 0, 1, 1, 1}, //stk_bond_seven_3
+            {0, 0, 1, 0, 1, 1, 1, 1, 1}, //stk_bond_seven_4
+            {0, 1, 1, 0, 1, 1, 0, 1, 1}, //stk_bond_eight_1
+            {1, 1, 1, 1, 1, 1, 0, 0, 0}, //stk_bond_eight_2
+            {1, 1, 0, 1, 1, 0, 1, 1, 0}, //stk_bond_eight_3
+            {0, 0, 0, 1, 1, 1, 1, 1, 1}, //stk_bond_eight_4
+            {1, 1, 1, 0, 1, 1, 0, 1, 1}, //stk_bond_nine_1
+            {0, 1, 1, 0, 1, 1, 1, 1, 1}, //stk_bond_nine_2
+            {1, 1, 1, 1, 1, 1, 1, 0, 0}, //stk_bond_nine_3
+            {1, 1, 1, 1, 1, 1, 0, 0, 1}, //stk_bond_nine_4
+            {1, 1, 1, 1, 1, 0, 1, 1, 0}, //stk_bond_nine_5
+            {1, 1, 0, 1, 1, 0, 1, 1, 1}, //stk_bond_nine_6
+            {1, 0, 0, 1, 1, 1, 1, 1, 1}, //stk_bond_nine_7
+            {0, 0, 1, 1, 1, 1, 1, 1, 1}, //stk_bond_nine_8
+            {1, 1, 1, 0, 1, 1, 1, 1, 1}, //stk_bond_ten_1
+            {1, 1, 1, 1, 1, 1, 1, 0, 1}, //stk_bond_ten_2
+            {1, 1, 1, 1, 1, 0, 1, 1, 1}, //stk_bond_ten_3
+            {1, 0, 1, 1, 1, 1, 1, 1, 1}  //stk_bond_ten_4
+    };
 
+    this->skeletoninzing_first_table = {
+    	    {0, 1, 0, 0, 1, 1, 0, 0, 0}, //tk_bond_four_1
+    	    {0, 1, 0, 1, 1, 0, 0, 0, 0}, //tk_bond_four_2
+    	    {0, 0, 0, 1, 1, 0, 0, 1, 0}, //tk_bond_four_3
+    	    {0, 0, 0, 0, 1, 1, 0, 1, 0}, //tk_bond_four_4
+            {0, 0, 1, 0, 1, 1, 0, 0, 1}, //stk_bond_four_1
+            {1, 1, 1, 0, 1, 0, 0, 0, 0}, //stk_bond_four_2
+            {1, 0, 0, 1, 1, 0, 1, 0, 0}, //stk_bond_four_3
+            {0, 0, 0, 0, 1, 0, 1, 1, 1}, //stk_bond_four_4
+            {1, 1, 1, 0, 1, 1, 0, 0, 0}, //stk_bond_six_1
+            {0, 1, 1, 0, 1, 1, 0, 0, 1}, //stk_bond_six_2
+            {1, 1, 1, 1, 1, 0, 0, 0, 0}, //stk_bond_six_3
+            {1, 1, 0, 1, 1, 0, 1, 0, 0}, //stk_bond_six_4
+            {1, 0, 0, 1, 1, 0, 1, 1, 0}, //stk_bond_six_5
+            {0, 0, 0, 1, 1, 0, 1, 1, 1}, //stk_bond_six_6
+            {0, 0, 0, 0, 1, 1, 1, 1, 1}, //stk_bond_six_7
+            {0, 0, 1, 0, 1, 1, 0, 1, 1}, //stk_bond_six_8
+            {1, 1, 1, 0, 1, 1, 0, 0, 1}, //stk_bond_seven_1
+            {1, 1, 1, 1, 1, 0, 1, 0, 0}, //stk_bond_seven_2
+            {1, 0, 0, 1, 1, 0, 1, 1, 1}, //stk_bond_seven_3
+            {0, 0, 1, 0, 1, 1, 1, 1, 1}, //stk_bond_seven_4
+            {0, 1, 1, 0, 1, 1, 0, 1, 1}, //stk_bond_eight_1
+            {1, 1, 1, 1, 1, 1, 0, 0, 0}, //stk_bond_eight_2
+            {1, 1, 0, 1, 1, 0, 1, 1, 0}, //stk_bond_eight_3
+            {0, 0, 0, 1, 1, 1, 1, 1, 1}, //stk_bond_eight_4
+            {1, 1, 1, 0, 1, 1, 0, 1, 1}, //stk_bond_nine_1
+            {0, 1, 1, 0, 1, 1, 1, 1, 1}, //stk_bond_nine_2
+            {1, 1, 1, 1, 1, 1, 1, 0, 0}, //stk_bond_nine_3
+            {1, 1, 1, 1, 1, 1, 0, 0, 1}, //stk_bond_nine_4
+            {1, 1, 1, 1, 1, 0, 1, 1, 0}, //stk_bond_nine_5
+            {1, 1, 0, 1, 1, 0, 1, 1, 1}, //stk_bond_nine_6
+            {1, 0, 0, 1, 1, 1, 1, 1, 1}, //stk_bond_nine_7
+            {0, 0, 1, 1, 1, 1, 1, 1, 1}, //stk_bond_nine_8
+            {1, 1, 1, 0, 1, 1, 1, 1, 1}, //stk_bond_ten_1
+            {1, 1, 1, 1, 1, 1, 1, 0, 1}, //stk_bond_ten_2
+            {1, 1, 1, 1, 1, 0, 1, 1, 1}, //stk_bond_ten_3
+            {1, 0, 1, 1, 1, 1, 1, 1, 1}, //stk_bond_ten_4
+			{1, 1, 1, 1, 1, 1, 0, 1, 1}, //k_bond_eleven_1
+			{1, 1, 1, 1, 1, 1, 1, 1, 0}, //k_bond_eleven_2
+			{1, 1, 0, 1, 1, 1, 1, 1, 1}, //k_bond_eleven_3
+			{0, 1, 1, 1, 1, 1, 1, 1, 1} //k_bond_eleven_4
+    };
 
-
-    this->shrinking_second_table = {
+    this->shrinking_thinning_second_table = {
     		{0, 0, 1, 0, 1, 0, 0, 0, 0}, //spur_1
     		{1, 0, 0, 0, 1, 0, 0, 0, 0}, //spur_2
     		{0, 0, 0, 0, 1, 0, 0, 1, 0}, //single_4_connection_1
@@ -358,12 +439,36 @@ void Image::generate_table() {
     		{2, 0, 1, 1, 1, 0, 0, 1, 2}, //Diagonal_branch_3
     		{1, 0, 2, 0, 1, 1, 2, 1, 0} //Diagonal_branch_4
     };
+    if(type == IMAGE_SHRINKING) {
+    	if(table == 1)
+    		return this->shrinking_first_table;
+    	else
+    		return this->shrinking_thinning_second_table;
+    } else if(type == IMAGE_THINNING) {
+    	if(table == 1)
+    		return this->thinning_first_table;
+    	else
+    		return this->shrinking_thinning_second_table;
+    } else if(type == IMAGE_SKELETONIZING) {
+    	if(table == 1)
+    		return this->skeletoninzing_first_table;
+    	else
+    		return this->skeletonize_second_table;
+    }
+
+    /*To shut the warning*/
+    return this->skeletonize_second_table;
 }
 
-void Image::image_shrinking() {
-	int sum = 0, temp_j, temp_i;
+void Image::image_morphology(morphology type) {
+	int sum = 0, temp_j, temp_i, count = 1, itt = 0;
+	vector<vector<int> > first_stage_table;
+	vector<vector<int> > second_stage_table;
 	vector<int> table;
 	char filename[100], filename2[100];
+
+	first_stage_table  = generate_table(type, 1);
+	second_stage_table = generate_table(type, 2);
 
 	for (int i = 0;i < this->height; i++) {
 		for (int j = 0;j < this->width; j++) {
@@ -371,14 +476,20 @@ void Image::image_shrinking() {
 		}
 	}
 
-	for(int itt = 0; itt < 55; itt++)
+//	for(int itt = 0; itt < 55; itt++)
+	while(count)
 	{
+		count = 0;
 		snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569/Debug/Itt/itt%d.raw",itt);
 		this->write_image(filename, this->TempImagedata, this->width, this->height);
 
 		snprintf(filename2, sizeof filename, "/home/rakesh/workspace/ee569/Debug/HitorMiss/Hitoritt%d.raw",itt);
 		this->write_image(filename2, this->HitorMissImagedata, this->width, this->height);
 
+		if(type == IMAGE_SKELETONIZING && itt > 15)
+			break;
+
+		itt++;
 		memset(this->HitorMissImagedata, 0, this->width * this->height);
 
 		for (int i = 1; i < this->height - 1; i++) {
@@ -387,8 +498,8 @@ void Image::image_shrinking() {
 				temp_i = i - 1;
 
 				if (int(*(this->TempImagedata + j + i * this->width)) == 255) {
-					for(int mat = 0; mat < int(this->shrinking_first_table.size()); mat++) {
-						table = this->shrinking_first_table.at(mat);
+					for(int mat = 0; mat < int(first_stage_table.size()); mat++) {
+						table = first_stage_table.at(mat);
 						sum = 0;
 						/*Apply the mask - first stage*/
 						for(int m = 0; m < 3; m++) {
@@ -400,6 +511,7 @@ void Image::image_shrinking() {
 						}
 						if(sum == 9) {
 							*(this->HitorMissImagedata + j + i * this->width) = 255;
+							count++;
 						}
 					}
 				}
@@ -413,9 +525,9 @@ void Image::image_shrinking() {
 
 				if (int(*(this->HitorMissImagedata + j + i * this->width)) == 255)
 				{
-					for(int mat = 0; mat < int(this->shrinking_second_table.size()); mat++) {
+					for(int mat = 0; mat < int(second_stage_table.size()); mat++) {
 						sum = 0;
-						table = this->shrinking_second_table.at(mat);
+						table = second_stage_table.at(mat);
 						/*Apply the mask - second stage*/
 						for(int m = 0; m < 3; m++) {
 							for(int n = 0; n < 3; n++) {
@@ -430,6 +542,7 @@ void Image::image_shrinking() {
 						}
 						if(sum == 9) {
 							*(this->TempImagedata + j + i * this->width) = 255;
+							count++;
 							break;
 						} else {
 							*(this->TempImagedata + j + i * this->width) = 0;
@@ -455,13 +568,18 @@ void Image::image_shrinking() {
 	cout << sum << endl;
 }
 
-void Image::print_table() {
+void Image::print_table(morphology type) {
 	vector<int> table;
+	vector<vector<int> > first_stage_table;
+	vector<vector<int> > second_stage_table;
+
+	first_stage_table  = generate_table(type, 1);
+	second_stage_table = generate_table(type, 2);
 
 	cout << endl << endl;
 
-	for(int mat = 0; mat < int(this->shrinking_first_table.size()); mat++) {
-		table = this->shrinking_first_table.at(mat);
+	for(int mat = 0; mat < int(first_stage_table.size()); mat++) {
+		table = first_stage_table.at(mat);
 		for(int m = 0; m < 3; m++) {
 			for(int n = 0; n < 3; n++) {
 				cout << table.at(n + m * 3) << " ";
@@ -473,8 +591,8 @@ void Image::print_table() {
 
 	cout << "Second stage matrix" << endl << endl;
 
-	for(int mat = 0; mat < int(this->shrinking_second_table.size()); mat++) {
-		table = this->shrinking_second_table.at(mat);
+	for(int mat = 0; mat < int(second_stage_table.size()); mat++) {
+		table = second_stage_table.at(mat);
 		for(int m = 0; m < 3; m++) {
 			for(int n = 0; n < 3; n++) {
 				cout << table.at(n + m * 3) << " ";
@@ -540,9 +658,8 @@ void Image::homographical_processing() {
     this->image_smoothening();
 //    this->hole_filling();
     this->write_image("/home/rakesh/workspace/ee569/Debug/Binary.raw", this->BinaryImagedata, this->width, this->height);
-    this->generate_table();
-//    this->print_table();
-    this->image_shrinking();
+//    this->print_table(SHRINKING);
+    this->image_morphology(IMAGE_SHRINKING);
 }
 
 void Image::write_image(char *filename, unsigned char *data, int inp_width, int inp_height) {

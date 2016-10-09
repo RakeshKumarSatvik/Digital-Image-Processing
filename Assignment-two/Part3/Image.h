@@ -13,6 +13,13 @@
 
 class Image {
 public:
+
+	typedef enum {
+		IMAGE_SHRINKING,
+		IMAGE_THINNING,
+		IMAGE_SKELETONIZING
+	}morphology;
+
 	Image();
 	virtual ~Image();
 	void allocate_image();
@@ -22,9 +29,9 @@ public:
 	void image_grayscale();
 	void padding_image(unsigned char *data);
 	void image_binarization();
-	void image_shrinking();
-	void generate_table();
-	void print_table();
+	void image_morphology(morphology type);
+	std::vector<std::vector<int> > generate_table(morphology type, int table);
+	void print_table(morphology type);
 	void hole_filling();
 	void image_smoothening();
 
@@ -40,7 +47,9 @@ public:
 	int height;
 	int BytesPerPixel;
 	std::vector<std::vector<int> > shrinking_first_table;
-	std::vector<std::vector<int> > shrinking_second_table;
+	std::vector<std::vector<int> > thinning_first_table;
+	std::vector<std::vector<int> > skeletoninzing_first_table;
+	std::vector<std::vector<int> > shrinking_thinning_second_table;
 	std::vector<std::vector<int> > skeletonize_second_table;
 };
 
