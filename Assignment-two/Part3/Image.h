@@ -25,21 +25,23 @@ public:
 	void image_shrinking();
 	void generate_table();
 	void print_table();
+	void hole_filling();
+	void image_smoothening();
 
 	// Allocate image data array
 	unsigned char *Imagedata;
 	unsigned char *OutputImagedata;
 	unsigned char *PaddedImagedata;
     unsigned char *BinaryImagedata;
-    unsigned char *HitorMissImagedata;
     unsigned char *TempImagedata;
+    unsigned char *HitorMissImagedata;
 
 	int width;
 	int height;
 	int BytesPerPixel;
-	std::vector<std::vector<int> > first_table;
-	std::vector<std::vector<int> > second_table;
-	std::vector<std::vector<int> > third_table;
+	std::vector<std::vector<int> > shrinking_first_table;
+	std::vector<std::vector<int> > shrinking_second_table;
+	std::vector<std::vector<int> > skeletonize_second_table;
 };
 
 #endif /* IMAGE_H_ */

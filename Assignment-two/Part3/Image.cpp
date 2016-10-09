@@ -33,8 +33,8 @@ Image::Image() {
 	this->OutputImagedata     = NULL;
 	this->PaddedImagedata     = NULL;
 	this->BinaryImagedata     = NULL;
-	this->HitorMissImagedata  = NULL;
-	this->TempImagedata     = NULL;
+	this->TempImagedata  = NULL;
+	this->HitorMissImagedata       = NULL;
 }
 
 Image::~Image() {
@@ -55,12 +55,12 @@ void Image::allocate_image() {
 	this->Imagedata 	      = new (nothrow) unsigned char[this->width * this->height * this->BytesPerPixel];
 	this->OutputImagedata     = new (nothrow) unsigned char[this->width * this->height];
 	this->BinaryImagedata     = new (nothrow) unsigned char[this->width * this->height];
-	this->TempImagedata       = new (nothrow) unsigned char[this->width * this->height];
-	this->HitorMissImagedata  = new (nothrow) unsigned char[this->width * this->height];
+	this->HitorMissImagedata       = new (nothrow) unsigned char[this->width * this->height];
+	this->TempImagedata  = new (nothrow) unsigned char[this->width * this->height];
 	this->PaddedImagedata     = new (nothrow) unsigned char[(this->width + 2 * padH) * (this->height + 2 * padW)];
 
-	memset(this->HitorMissImagedata , 0, this->width * this->height);
-	memset(this->TempImagedata      , 0, this->width * this->height);
+	memset(this->TempImagedata , 0, this->width * this->height);
+	memset(this->HitorMissImagedata      , 0, this->width * this->height);
 }
 
 void Image::read_image(char *filename) {
@@ -85,7 +85,7 @@ void Image::image_grayscale() {
             green = int(*(this->Imagedata + (j + i * this->width) * this->BytesPerPixel + 2));
             blue  = int(*(this->Imagedata + (j + i * this->width) * this->BytesPerPixel + 3));
 
-            *(this->OutputImagedata + j + i * this->width) = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+            *(this->OutputImagedata + j + i * this->width) = 0.2989 * red + 0.5870 * green + 0.1140 * blue;
         }
     }
 }
@@ -126,7 +126,7 @@ void Image::padding_image(unsigned char *data) {
 }
 
 void Image::image_binarization() {
-    int mean, temp_i, temp_j;
+    int mean, temp_i, temp_j, pixel;
 
     for(int i = padH; i < this->height + padH; i++) {
         for(int j = padW; j < this->width + padW; j++) {
@@ -140,7 +140,8 @@ void Image::image_binarization() {
             }
             mean /= (padH * padW);
 //            cout << mean << endl;
-            if(mean > int(*(this->PaddedImagedata + j + i * (this->width + 2 * padW)))) {
+            pixel = int(*(this->PaddedImagedata + j + i * (this->width + 2 * padW)));
+            if(60 > pixel || pixel > 95) {
                 *(this->BinaryImagedata + temp_j + temp_i * this->width) = 255;
             } else {
                 *(this->BinaryImagedata + temp_j + temp_i * this->width) = 0;
@@ -149,8 +150,17 @@ void Image::image_binarization() {
     }
 }
 
+void Image::hole_filling() {
+
+	for(int i = 0; i < this->height; i++) {
+		for(int j = 0; j < this->width; j++) {
+
+		}
+	}
+}
+
 void Image::generate_table() {
-    this->first_table = {
+    this->shrinking_first_table = {
     		{0, 0, 1, 0, 1, 0, 0, 0, 0}, //s_bond_one_1
             {1, 0, 0, 0, 1, 0, 0, 0, 0}, //s_bond_one_2
             {0, 0, 0, 0, 1, 0, 1, 0, 0}, //s_bond_one_3
@@ -167,10 +177,6 @@ void Image::generate_table() {
             {0, 0, 0, 0, 1, 0, 1, 1, 0}, //s_bond_three_6
             {0, 0, 0, 0, 1, 0, 0, 1, 1}, //s_bond_three_7
             {0, 0, 0, 0, 1, 1, 0, 0, 1}, //s_bond_three_8
-            {0, 1, 0, 0, 1, 1, 0, 0, 0}, //tk_bond_four_1
-            {0, 1, 0, 1, 1, 0, 0, 0, 0}, //tk_bond_four_2
-            {0, 0, 0, 1, 1, 0, 0, 1, 0}, //tk_bond_four_3
-            {0, 0, 0, 0, 1, 1, 0, 1, 0}, //tk_bond_four_4
             {0, 0, 1, 0, 1, 1, 0, 0, 1}, //stk_bond_four_1
             {1, 1, 1, 0, 1, 0, 0, 0, 0}, //stk_bond_four_2
             {1, 0, 0, 1, 1, 0, 1, 0, 0}, //stk_bond_four_3
@@ -212,14 +218,21 @@ void Image::generate_table() {
             {1, 1, 1, 0, 1, 1, 1, 1, 1}, //stk_bond_ten_1
             {1, 1, 1, 1, 1, 1, 1, 0, 1}, //stk_bond_ten_2
             {1, 1, 1, 1, 1, 0, 1, 1, 1}, //stk_bond_ten_3
-            {1, 0, 1, 1, 1, 1, 1, 1, 1}, //stk_bond_ten_4
-            {1, 1, 1, 1, 1, 1, 0, 1, 1}, //stk_bond_eleven_1
-            {1, 1, 1, 1, 1, 1, 1, 1, 0}, //stk_bond_eleven_2
-            {1, 1, 0, 1, 1, 1, 1, 1, 1}, //stk_bond_eleven_3
-            {0, 1, 1, 1, 1, 1, 1, 1, 1}, //stk_bond_eleven_4
+            {1, 0, 1, 1, 1, 1, 1, 1, 1} //stk_bond_ten_4
     };
 
-    this->second_table = {
+//    {1, 1, 1, 1, 1, 1, 0, 1, 1}, //k_bond_eleven_1
+//    {1, 1, 1, 1, 1, 1, 1, 1, 0}, //k_bond_eleven_2
+//    {1, 1, 0, 1, 1, 1, 1, 1, 1}, //k_bond_eleven_3
+//    {0, 1, 1, 1, 1, 1, 1, 1, 1}, //k_bond_eleven_4
+//    {0, 1, 0, 0, 1, 1, 0, 0, 0}, //tk_bond_four_1
+//    {0, 1, 0, 1, 1, 0, 0, 0, 0}, //tk_bond_four_2
+//    {0, 0, 0, 1, 1, 0, 0, 1, 0}, //tk_bond_four_3
+//    {0, 0, 0, 0, 1, 1, 0, 1, 0}, //tk_bond_four_4
+
+
+
+    this->shrinking_second_table = {
     		{0, 0, 1, 0, 1, 0, 0, 0, 0}, //spur_1
     		{1, 0, 0, 0, 1, 0, 0, 0, 0}, //spur_2
     		{0, 0, 0, 0, 1, 0, 0, 1, 0}, //single_4_connection_1
@@ -289,9 +302,11 @@ void Image::generate_table() {
     		{0, 1, 2, 1, 1, 0, 2, 0, 1}, //Diagonal_Branch_2
     		{2, 0, 1, 1, 1, 0, 0, 1, 2}, //Diagonal_Branch_3
     		{1, 0, 2, 0, 1, 1, 2, 1, 0}, //Diagonal_Branch_4
+    		{1, 0, 0, 0, 1, 0, 1, 1, 0},
+    		{0, 1, 1, 0, 1, 1, 0, 0, 0}
     };
 
-    this->third_table= {
+    this->skeletonize_second_table= {
     		{0, 0, 0, 0, 1, 0, 0, 0 ,1}, //Spur_1
     		{0, 0, 0, 0, 1, 0, 1, 0, 0}, //Spur_2
     		{0, 0, 1, 0, 1, 0, 0, 0, 0}, //Spur_3
@@ -341,44 +356,50 @@ void Image::generate_table() {
     		{2, 1, 0, 0, 1, 1, 1, 0, 2}, //Diagonal_branch_1
     		{0, 1, 2, 1, 1, 0, 2, 0, 1}, //Diagonal_branch_2
     		{2, 0, 1, 1, 1, 0, 0, 1, 2}, //Diagonal_branch_3
-    		{1, 0, 2, 0, 1, 1, 2, 1, 0}, //Diagonal_branch_4
+    		{1, 0, 2, 0, 1, 1, 2, 1, 0} //Diagonal_branch_4
     };
 }
 
 void Image::image_shrinking() {
 	int sum = 0, temp_j, temp_i;
 	vector<int> table;
+	char filename[100], filename2[100];
 
 	for (int i = 0;i < this->height; i++) {
 		for (int j = 0;j < this->width; j++) {
-			*(this->HitorMissImagedata + j + i * this->width) = (int(*(this->BinaryImagedata + j + i * this->width)))/255;
+			*(this->TempImagedata + j + i * this->width) = *(this->BinaryImagedata + j + i * this->width);
 		}
 	}
-	for(int l=0;l<40;l++)    // iteration times
-	{
-		memset(this->TempImagedata, 0, this->width * this->height);
 
-		for (int i=1;i<this->height-1;i++) {
-			for (int j=1;j<this->width-1;j++) {
+	for(int itt = 0; itt < 55; itt++)
+	{
+		snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569/Debug/Itt/itt%d.raw",itt);
+		this->write_image(filename, this->TempImagedata, this->width, this->height);
+
+		snprintf(filename2, sizeof filename, "/home/rakesh/workspace/ee569/Debug/HitorMiss/Hitoritt%d.raw",itt);
+		this->write_image(filename2, this->HitorMissImagedata, this->width, this->height);
+
+		memset(this->HitorMissImagedata, 0, this->width * this->height);
+
+		for (int i = 1; i < this->height - 1; i++) {
+			for (int j = 1; j < this->width - 1; j++) {
 				temp_j = j - 1;
 				temp_i = i - 1;
 
-				if (int(*(this->HitorMissImagedata + j + i * this->width)) == 1) {
-					for(int mat = 0; mat < this->first_table.size(); mat++) {
-						table = this->first_table.at(mat);
+				if (int(*(this->TempImagedata + j + i * this->width)) == 255) {
+					for(int mat = 0; mat < int(this->shrinking_first_table.size()); mat++) {
+						table = this->shrinking_first_table.at(mat);
 						sum = 0;
 						/*Apply the mask - first stage*/
 						for(int m = 0; m < 3; m++) {
 							for(int n = 0; n < 3; n++) {
-								if(table.at(n + m * 3) != 2) {
-									if(int(*(this->HitorMissImagedata + temp_j + n + (temp_i + m) * this->width)) == table.at(n + m * 3)) {
-										sum++;
-									}
+								if(int(*(this->TempImagedata + temp_j + n + (temp_i + m) * this->width)) == (table.at(n + m * 3) * 255)) {
+									sum++;
 								}
 							}
 						}
 						if(sum == 9) {
-							*(this->TempImagedata + j + i * this->width) = 1;
+							*(this->HitorMissImagedata + j + i * this->width) = 255;
 						}
 					}
 				}
@@ -390,16 +411,16 @@ void Image::image_shrinking() {
 				temp_j = j - 1;
 				temp_i = i - 1;
 
-				if (int(*(this->TempImagedata + j + i * this->width)) == 1)
+				if (int(*(this->HitorMissImagedata + j + i * this->width)) == 255)
 				{
-					for(int mat = 0; mat < this->second_table.size(); mat++) {
+					for(int mat = 0; mat < int(this->shrinking_second_table.size()); mat++) {
 						sum = 0;
-						table = this->second_table.at(mat);
+						table = this->shrinking_second_table.at(mat);
 						/*Apply the mask - second stage*/
 						for(int m = 0; m < 3; m++) {
 							for(int n = 0; n < 3; n++) {
 								if(table.at(n + m * 3) != 2) {
-									if(int(*(this->TempImagedata + j + n + (i + m) * this->width)) == table.at(n + m * 3)) {
+									if(int(*(this->HitorMissImagedata + temp_j + n + (temp_i + m) * this->width)) == (table.at(n + m * 3) * 255)) {
 										sum++;
 									}
 								} else {
@@ -408,10 +429,10 @@ void Image::image_shrinking() {
 							}
 						}
 						if(sum == 9) {
-							*(this->HitorMissImagedata + j + i * this->width) = 1;
+							*(this->TempImagedata + j + i * this->width) = 255;
 							break;
 						} else {
-							*(this->HitorMissImagedata + j + i * this->width) = 0;
+							*(this->TempImagedata + j + i * this->width) = 0;
 						}
 					}
 				}
@@ -422,7 +443,7 @@ void Image::image_shrinking() {
 	sum = 0;
 	for (int i = 0; i < this->height; i++) {
 		for (int j = 0; j < this->width; j++) {
-			if (int(*(this->HitorMissImagedata + j + i * this->width)) == 1) {
+			if (int(*(this->TempImagedata + j + i * this->width)) == 255) {
 				sum++;
 				*(this->OutputImagedata + j + i * this->width) = 255;
 			}
@@ -439,8 +460,8 @@ void Image::print_table() {
 
 	cout << endl << endl;
 
-	for(int mat = 0; mat < this->first_table.size(); mat++) {
-		table = this->first_table.at(mat);
+	for(int mat = 0; mat < int(this->shrinking_first_table.size()); mat++) {
+		table = this->shrinking_first_table.at(mat);
 		for(int m = 0; m < 3; m++) {
 			for(int n = 0; n < 3; n++) {
 				cout << table.at(n + m * 3) << " ";
@@ -452,8 +473,8 @@ void Image::print_table() {
 
 	cout << "Second stage matrix" << endl << endl;
 
-	for(int mat = 0; mat < this->second_table.size(); mat++) {
-		table = this->second_table.at(mat);
+	for(int mat = 0; mat < int(this->shrinking_second_table.size()); mat++) {
+		table = this->shrinking_second_table.at(mat);
 		for(int m = 0; m < 3; m++) {
 			for(int n = 0; n < 3; n++) {
 				cout << table.at(n + m * 3) << " ";
@@ -464,14 +485,53 @@ void Image::print_table() {
 	}
 }
 
+void Image::image_smoothening() {
+	int pixel, bond, in_pixel;
+	char filename[100];
+
+	for(int itt = 0; itt < 20; itt++) {
+		snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569/Debug/Smooth/itt%d.raw",itt);
+		this->write_image(filename, this->BinaryImagedata, this->width, this->height);
+
+		for(int i = 1; i < this->height - 1; i++) {
+			for(int j = 1; j < this->width - 1; j++) {
+				pixel = int(*(this->BinaryImagedata + j + i * this->width));
+				if(pixel) {
+					for(int m = 0; m < 3; m++) {
+						for(int n = 0; n < 3; n++) {
+							in_pixel = int(*(this->BinaryImagedata + j + n + (i + m) * this->width));
+							if(in_pixel) {
+								if(m == 0 && n == 0) {bond += 1;}
+								if(m == 0 && n == 1) {bond += 2;}
+								if(m == 0 && n == 2) {bond += 1;}
+								if(m == 1 && n == 0) {bond += 2;}
+								if(m == 1 && n == 2) {bond += 2;}
+								if(m == 2 && n == 0) {bond += 1;}
+								if(m == 2 && n == 1) {bond += 2;}
+								if(m == 2 && n == 2) {bond += 1;}
+							}
+						}
+					}
+					if(bond < 11) {
+						*(this->BinaryImagedata + j + i * this->width) = 0;
+					}
+				}
+			}
+		}
+	}
+}
+
 void Image::homographical_processing() {
     this->image_grayscale();
+    this->write_image("/home/rakesh/workspace/ee569/Debug/grayscale.raw", this->OutputImagedata, this->width, this->height);
     this->padding_image(this->OutputImagedata);
     this->image_binarization();
+    this->image_smoothening();
+//    this->hole_filling();
     this->write_image("/home/rakesh/workspace/ee569/Debug/Binary.raw", this->BinaryImagedata, this->width, this->height);
     this->generate_table();
 //    this->print_table();
-    this->image_shrinking();
+//    this->image_shrinking();
 }
 
 void Image::write_image(char *filename, unsigned char *data, int inp_width, int inp_height) {
