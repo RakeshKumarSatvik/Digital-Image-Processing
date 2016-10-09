@@ -486,20 +486,25 @@ void Image::print_table() {
 }
 
 void Image::image_smoothening() {
-	int pixel, bond, in_pixel;
+	int pixel, bond = 0, in_pixel, temp_i, temp_j, count = 0;
 	char filename[100];
 
-	for(int itt = 0; itt < 20; itt++) {
+	memset(this->OutputImagedata, 0, this->width * this->height);
+
+	for(int itt = 0; itt < 12; itt++) {
 		snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569/Debug/Smooth/itt%d.raw",itt);
-		this->write_image(filename, this->BinaryImagedata, this->width, this->height);
+		this->write_image(filename, this->OutputImagedata, this->width, this->height);
 
 		for(int i = 1; i < this->height - 1; i++) {
 			for(int j = 1; j < this->width - 1; j++) {
+				temp_i = i - 1;
+				temp_j = j - 1;
 				pixel = int(*(this->BinaryImagedata + j + i * this->width));
+				bond = 0;
 				if(pixel) {
 					for(int m = 0; m < 3; m++) {
 						for(int n = 0; n < 3; n++) {
-							in_pixel = int(*(this->BinaryImagedata + j + n + (i + m) * this->width));
+							in_pixel = int(*(this->BinaryImagedata + temp_j + n + (temp_i + m) * this->width));
 							if(in_pixel) {
 								if(m == 0 && n == 0) {bond += 1;}
 								if(m == 0 && n == 1) {bond += 2;}
@@ -512,13 +517,19 @@ void Image::image_smoothening() {
 							}
 						}
 					}
-					if(bond < 11) {
-						*(this->BinaryImagedata + j + i * this->width) = 0;
+//					cout << "width " << j << " height " << i << " bond " << bond << endl;
+					if(bond < 7) {
+						count++;
+						*(this->OutputImagedata + j + i * this->width) = 0;
+					} else {
+						*(this->OutputImagedata + j + i * this->width) = 255;
 					}
 				}
 			}
 		}
+		memcpy(this->BinaryImagedata, this->OutputImagedata, this->width * this->height);
 	}
+	cout << count << endl;
 }
 
 void Image::homographical_processing() {
@@ -531,7 +542,7 @@ void Image::homographical_processing() {
     this->write_image("/home/rakesh/workspace/ee569/Debug/Binary.raw", this->BinaryImagedata, this->width, this->height);
     this->generate_table();
 //    this->print_table();
-//    this->image_shrinking();
+    this->image_shrinking();
 }
 
 void Image::write_image(char *filename, unsigned char *data, int inp_width, int inp_height) {
