@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 	homography.allocate_image();
 	homography.read_image(argv[1]);
 
-	homography.homographical_processing();
+	homography.morphological_processing();
 	homography.write_image(argv[2], homography.OutputImagedata, homography.width, homography.height);
 
 	return 0;

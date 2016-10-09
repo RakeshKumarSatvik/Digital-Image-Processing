@@ -87,7 +87,7 @@ void Image::read_image(char *filename) {
 }
 
 void Image::hole_filling() {
-	int pixel;
+	int pixel, temp_j, temp_i, bond;
 	bool input, comparex;
 	char filename[100];
 
@@ -97,11 +97,12 @@ void Image::hole_filling() {
 
 	memset(this->TempImagedata, 0, this->height * this->width);
 
-	for(int itt = 0; itt < 25; itt++) {
+	for(int itt = 0; itt < 55; itt++) {
+
+		cout << "Hole filling " << " Iteration " << itt << endl;
 
 		snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/Fill/itt%d.raw",itt);
 		this->write_image(filename, this->TempImagedata, this->width, this->height);
-
 		for(int i = 10; i < this->height - 1; i++) {
 			for(int j = 1; j < this->width - 1; j++) {
 				pixel = *(this->OutputImagedata + j + i * this->width);
@@ -117,7 +118,7 @@ void Image::hole_filling() {
 
 		for(int i = 0; i < this->height; i++) {
 			for(int j = 0; j < this->width; j++) {
-				input    = bool(*(this->Imagedata + j + i * this->width));
+				input    = bool(*(this->BinaryImagedata + j + i * this->width));
 				comparex = bool(*(this->TempImagedata + j + i * this->width));
 
 				if(input && comparex) {
@@ -155,6 +156,27 @@ void Image::hole_filling() {
 			comparex = int(*(this->OutputImagedata + j + i * this->width));
 
 			if(input || comparex) {
+				*(this->BinaryImagedata + j + i * this->width) = 255;
+			}
+		}
+	}
+
+	for(int i = 1; i < this->height - 1; i++) {
+		for(int j = 1; j < this->width - 1; j++) {
+			temp_i = i - 1;
+			temp_j = j - 1;
+			bond = 0;
+
+			if(int(*(this->BinaryImagedata + j + i * this->width)) == 0) {
+				for(int m = 0; m < 3; m++) {
+					for(int n = 0;n < 3; n++) {
+						if(int(*(this->BinaryImagedata + temp_j + n + (temp_i + m) * this->width)) == 255) {
+							bond++;
+						}
+					}
+				}
+			}
+			if(bond == 8) {
 				*(this->BinaryImagedata + j + i * this->width) = 255;
 			}
 		}
@@ -440,7 +462,8 @@ vector<vector<int> > Image::generate_table(morphology type, int table) {
     		{0, 1, 2, 1, 1, 0, 2, 0, 1}, //Diagonal_branch_2
     		{2, 0, 1, 1, 1, 0, 0, 1, 2}, //Diagonal_branch_3
     		{1, 0, 2, 0, 1, 1, 2, 1, 0}, //Diagonal_branch_4
-    		{1, 0, 1, 1, 1, 1, 0, 0, 0}
+    		{1, 0, 1, 1, 1, 1, 0, 0, 0},
+    		{0, 1, 1, 0, 1, 0, 0, 1, 1}
     };
     if(type == IMAGE_SHRINKING) {
     	if(table == 1)
@@ -465,6 +488,8 @@ vector<vector<int> > Image::generate_table(morphology type, int table) {
 
 void Image::image_morphology(morphology type, int limit) {
 	int sum = 0, temp_j, temp_i, count = 1, itt = 0;
+	string to_print[3] = {"Shrinking", "Thinning", "Skeletonizing"};
+
 	vector<vector<int> > first_stage_table;
 	vector<vector<int> > second_stage_table;
 	vector<int> table;
@@ -481,7 +506,7 @@ void Image::image_morphology(morphology type, int limit) {
 
 	while(count)
 	{
-		cout << "Iteration " << itt << endl;
+		cout << to_print[type] << " Iteration " << itt << endl;
 		count = 0;
 		snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/Itt/%ditt%d.raw",type,itt);
 		this->write_image(filename, this->TempImagedata, this->width, this->height);
@@ -489,7 +514,7 @@ void Image::image_morphology(morphology type, int limit) {
 		snprintf(filename2, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/HitorMiss/%dHitoritt%d.raw",type,itt);
 		this->write_image(filename2, this->HitorMissImagedata, this->width, this->height);
 
-		if((type == IMAGE_SKELETONIZING || type == IMAGE_THINNING) && itt > limit)
+		if((type == IMAGE_SKELETONIZING/* || type == IMAGE_THINNING*/) && itt > limit)
 			break;
 
 		itt++;
@@ -606,60 +631,37 @@ void Image::print_table(morphology type) {
 	}
 }
 
-void Image::image_smoothening() {
-	int pixel, bond = 0, in_pixel, temp_i, temp_j, count = 0;
-	char filename[100];
+void Image::image_edge_resolver() {
+	int i;
 
-	memset(this->OutputImagedata, 0, this->width * this->height);
-
-	for(int itt = 0; itt < 12; itt++) {
-		snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569/Debug/Smooth/itt%d.raw",itt);
-		this->write_image(filename, this->OutputImagedata, this->width, this->height);
-
-		for(int i = 1; i < this->height - 1; i++) {
-			for(int j = 1; j < this->width - 1; j++) {
-				temp_i = i - 1;
-				temp_j = j - 1;
-				pixel = int(*(this->BinaryImagedata + j + i * this->width));
-				bond = 0;
-				if(pixel) {
-					for(int m = 0; m < 3; m++) {
-						for(int n = 0; n < 3; n++) {
-							in_pixel = int(*(this->BinaryImagedata + temp_j + n + (temp_i + m) * this->width));
-							if(in_pixel) {
-								if(m == 0 && n == 0) {bond += 1;}
-								if(m == 0 && n == 1) {bond += 2;}
-								if(m == 0 && n == 2) {bond += 1;}
-								if(m == 1 && n == 0) {bond += 2;}
-								if(m == 1 && n == 2) {bond += 2;}
-								if(m == 2 && n == 0) {bond += 1;}
-								if(m == 2 && n == 1) {bond += 2;}
-								if(m == 2 && n == 2) {bond += 1;}
-							}
-						}
-					}
-//					cout << "width " << j << " height " << i << " bond " << bond << endl;
-					if(bond < 7) {
-						count++;
-						*(this->OutputImagedata + j + i * this->width) = 0;
-					} else {
-						*(this->OutputImagedata + j + i * this->width) = 255;
-					}
-				}
-			}
+	//Making the first and last row 0
+	for(int itt = 0; itt < 2; itt++) {
+		i = itt * (this->height - 1);
+		for(int j = 0; j < this->width; j++) {
+			*(this->BinaryImagedata + j + i * this->width) = 0;
 		}
-		memcpy(this->BinaryImagedata, this->OutputImagedata, this->width * this->height);
 	}
-	cout << count << endl;
+
+	//Making first and last column 0
+	i = 0;
+	for(int j = 0; j < this->height; j++) {
+		for(int itt = 0; itt < 2; itt++) {
+			i = itt * (this->width - 1);
+			*(this->BinaryImagedata + i + j * this->width) = 0;
+		}
+	}
 }
 
-void Image::homographical_processing() {
-//    this->image_smoothening();
+void Image::morphological_processing() {
     this->hole_filling();
-    this->write_image("/home/rakesh/workspace/ee569_P3_B/Debug/Binary.raw", this->BinaryImagedata, this->width, this->height);
-//    this->print_table(SHRINKING);
-    this->image_morphology(IMAGE_THINNING, 50);
 
+    this->image_edge_resolver();
+    this->write_image("/home/rakesh/workspace/ee569_P3_B/Debug/Binary.raw", this->BinaryImagedata, this->width, this->height);
+
+    this->image_morphology(IMAGE_THINNING, 50);
+    this->write_image("/home/rakesh/workspace/ee569_P3_B/Debug/Thin.raw", this->OutputImagedata, this->width, this->height);
+
+//    memcpy(this->BinaryImagedata, this->OutputImagedata, this->width * this->height);
     this->image_morphology(IMAGE_SKELETONIZING, 200);
 }
 

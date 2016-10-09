@@ -25,12 +25,12 @@ public:
 	void allocate_image();
 	void read_image(char *filename);
 	void write_image(char *filename, unsigned char *data, int inp_width, int inp_height);
-	void homographical_processing();
+	void morphological_processing();
 	void image_morphology(morphology type, int limit);
 	std::vector<std::vector<int> > generate_table(morphology type, int table);
 	void print_table(morphology type);
 	void hole_filling();
-	void image_smoothening();
+	void image_edge_resolver();
 
 	// Allocate image data array
 	unsigned char *Imagedata;
