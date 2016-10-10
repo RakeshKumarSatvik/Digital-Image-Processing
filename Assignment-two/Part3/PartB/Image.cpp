@@ -17,8 +17,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "tables.h"
-
 using namespace std;
 
 int padH = 10/2;
@@ -89,7 +87,6 @@ void Image::read_image(char *filename) {
 void Image::hole_filling() {
 	int pixel, temp_j, temp_i, bond;
 	bool input, comparex;
-	char filename[100];
 
 	/*Calling this function to determine the 'p' from the background
 	 * The OutputImagedata has the required information stored as a result*/
@@ -97,12 +94,10 @@ void Image::hole_filling() {
 
 	memset(this->TempImagedata, 0, this->height * this->width);
 
-	for(int itt = 0; itt < 55; itt++) {
+	for(int itt = 0; itt < 75; itt++) {
 
 		cout << "Hole filling " << " Iteration " << itt << endl;
 
-		snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/Fill/itt%d.raw",itt);
-		this->write_image(filename, this->TempImagedata, this->width, this->height);
 		for(int i = 10; i < this->height - 1; i++) {
 			for(int j = 1; j < this->width - 1; j++) {
 				pixel = *(this->OutputImagedata + j + i * this->width);
@@ -142,11 +137,6 @@ void Image::hole_filling() {
 		}
 	}
 
-	snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/one.raw");
-	this->write_image(filename, this->TempImagedata, this->width, this->height);
-
-	snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/two.raw");
-	this->write_image(filename, this->OutputImagedata, this->width, this->height);
 
 	memset(this->BinaryImagedata, 0, this->height * this->width);
 
@@ -161,23 +151,25 @@ void Image::hole_filling() {
 		}
 	}
 
-	for(int i = 1; i < this->height - 1; i++) {
-		for(int j = 1; j < this->width - 1; j++) {
-			temp_i = i - 1;
-			temp_j = j - 1;
-			bond = 0;
+	for(int itt = 0; itt < 200; itt++) {
+		for(int i = 4; i < this->height - 4; i++) {
+			for(int j = 4; j < this->width - 4; j++) {
+				temp_i = i - 1;
+				temp_j = j - 1;
+				bond = 0;
 
-			if(int(*(this->BinaryImagedata + j + i * this->width)) == 0) {
-				for(int m = 0; m < 3; m++) {
-					for(int n = 0;n < 3; n++) {
-						if(int(*(this->BinaryImagedata + temp_j + n + (temp_i + m) * this->width)) == 255) {
-							bond++;
+				if(int(*(this->BinaryImagedata + j + i * this->width)) == 0) {
+					for(int m = 0; m < 3; m++) {
+						for(int n = 0;n < 3; n++) {
+							if(int(*(this->BinaryImagedata + temp_j + n + (temp_i + m) * this->width)) == 255) {
+								bond++;
+							}
 						}
 					}
 				}
-			}
-			if(bond == 8) {
-				*(this->BinaryImagedata + j + i * this->width) = 255;
+				if(bond > 4) {
+					*(this->BinaryImagedata + j + i * this->width) = 255;
+				}
 			}
 		}
 	}
@@ -493,7 +485,6 @@ void Image::image_morphology(morphology type, int limit) {
 	vector<vector<int> > first_stage_table;
 	vector<vector<int> > second_stage_table;
 	vector<int> table;
-	char filename[100], filename2[100];
 
 	first_stage_table  = generate_table(type, 1);
 	second_stage_table = generate_table(type, 2);
@@ -508,11 +499,6 @@ void Image::image_morphology(morphology type, int limit) {
 	{
 		cout << to_print[type] << " Iteration " << itt << endl;
 		count = 0;
-		snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/Itt/%ditt%d.raw",type,itt);
-		this->write_image(filename, this->TempImagedata, this->width, this->height);
-
-		snprintf(filename2, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/HitorMiss/%dHitoritt%d.raw",type,itt);
-		this->write_image(filename2, this->HitorMissImagedata, this->width, this->height);
 
 		if((type == IMAGE_SKELETONIZING/* || type == IMAGE_THINNING*/) && itt > limit)
 			break;
@@ -652,17 +638,51 @@ void Image::image_edge_resolver() {
 	}
 }
 
-void Image::morphological_processing() {
-    this->hole_filling();
+int Image::image_end_points() {
+	int temp_i, temp_j, bond = 0, count = 0;
+	for(int i = 1; i < this->height - 1; i++) {
+		for(int j = 1; j < this->width - 1; j++) {
+			temp_i = i - 1;
+			temp_j = j - 1;
+			bond = 0;
+
+			if(int(*(this->OutputImagedata + j + i * this->width)) == 255) {
+				for(int m = 0; m < 3; m++) {
+					for(int n = 0;n < 3; n++) {
+						if(int(*(this->OutputImagedata + temp_j + n + (temp_i + m) * this->width)) == 255) {
+							bond++;
+						}
+					}
+				}
+				cout << " width " << j << " height " << i << " bond " << bond << endl;
+				if(bond == 2) {
+					count++;
+				}
+			}
+		}
+	}
+	return count;
+}
+
+void Image::morphological_processing(int count) {
+	char filename[100];
+
+	this->hole_filling();
 
     this->image_edge_resolver();
-    this->write_image("/home/rakesh/workspace/ee569_P3_B/Debug/Binary.raw", this->BinaryImagedata, this->width, this->height);
+    snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/Binary%d.raw",count);
+    this->write_image(filename, this->BinaryImagedata, this->width, this->height);
 
     this->image_morphology(IMAGE_THINNING, 50);
-    this->write_image("/home/rakesh/workspace/ee569_P3_B/Debug/Thin.raw", this->OutputImagedata, this->width, this->height);
 
-//    memcpy(this->BinaryImagedata, this->OutputImagedata, this->width * this->height);
+	snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/Thin%d.raw",count);
+    this->write_image(filename, this->OutputImagedata, this->width, this->height);
+    this->compare_output[count].thin_count = this->image_end_points();
+
     this->image_morphology(IMAGE_SKELETONIZING, 200);
+	snprintf(filename, sizeof filename, "/home/rakesh/workspace/ee569_P3_B/Debug/Skeletonize%d.raw",count);
+    this->write_image(filename, this->OutputImagedata, this->width, this->height);
+    this->compare_output[count].skeletonize_count = this->image_end_points();
 }
 
 void Image::write_image(char *filename, unsigned char *data, int inp_width, int inp_height) {
