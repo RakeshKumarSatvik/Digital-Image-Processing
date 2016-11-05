@@ -37,6 +37,9 @@ Image::Image() {
 	this->coefficients		= new double*[12];
 	this->image_count	    = 0;
 	this->data              = Mat::zeros(12, 25, CV_32F);
+	this->normalizedData    = Mat::zeros(12, 25, CV_32F);
+	this->projection_result = Mat::zeros(12, 3, CV_32F);
+	this->normalized_projection_result = Mat::zeros(12, 3, CV_32F);
 
 	for(int i = 0; i < 12;i++) {
 		this->coefficients[i] = new double[25];
@@ -188,6 +191,7 @@ double Image::energy_calculator() {
 		}
 	}
 
+	energy *= energy;
 	energy /= (this->width * this->height);
 
 	return energy;
@@ -204,24 +208,25 @@ void Image::print_filters(vector<int> coefficients) {
 
 void Image::normalize_dump(vector<double> energy) {
 	FILE *fp;
-	double max, min, normalized;
-
+	double /*max, min, */normalized;
+	cout << "enter this function" << endl;
 	if (!(fp = fopen("dump.txt", "a"))) {
 		cout << "Cannot open file: " << "dump.txt" << endl;
 		exit(1);
 	}
 
-	max = *max_element(energy.begin(), energy.end());
-	min = *min_element(energy.begin(), energy.end());
+//	max = *max_element(energy.begin(), energy.end());
+//	min = *min_element(energy.begin(), energy.end());
 
 	for(int i = 0; i < 5; i++) {
 		for(int j = 0; j < 5; j++) {
-			normalized = (energy.at(i * 5 + j) - min) / (max - min);
+			normalized = energy.at(i * 5 + j);
 			fprintf(fp,"%f ",normalized);
 			this->coefficients[this->image_count - 1][i * 5 + j] = normalized;
 			this->data.at<float>((this->image_count - 1), (i * 5 + j)) = normalized;
 		}
 	}
+	cout << "exit this function" << endl;
 	fprintf(fp,"\n");
 }
 
@@ -242,31 +247,73 @@ void Image::texture_analysis() {
 }
 
 void Image::print_pca_values() {
-	printf("In this function\n");
+	vector<double> columns[25], pca[3];
+	double max[25], min[25], pca_max[3], pca_min[3];
+
 	for(int i = 0; i < 12; i++) {
 		for(int j = 0; j < 25; j++) {
 			printf("%f ",this->coefficients[i][j]);
+			columns[j].push_back(this->coefficients[i][j]);
 		}
 		printf("\n");
 	}
+
+	for(int i = 0; i < 25; i++) {
+		max[i] = *max_element(columns[i].begin(), columns[i].end());
+		min[i] = *min_element(columns[i].begin(), columns[i].end());
+	}
+
+	for(int i = 0; i < 12; i++) {
+		for(int j = 0; j < 25; j++) {
+			this->normalizedData.at<float>(i, j) = (this->data.at<float>(i, j) - min[j]) / (max[j] - min[j]);
+		}
+	}
+
+	for(int i = 0; i < 12; i++) {
+		for(int j = 0; j < 3; j++) {
+			pca[j].push_back(this->projection_result.at<float>(i,j));
+		}
+	}
+
+	for(int i = 0; i < 3; i++) {
+		pca_max[i] = *max_element(pca[i].begin(), pca[i].end());
+		pca_min[i] = *min_element(pca[i].begin(), pca[i].end());
+	}
+
+	for(int i = 0; i < 12; i++) {
+		for(int j = 0; j < 3; j++) {
+			this->normalized_projection_result.at<float>(i, j) = (this->projection_result.at<float>(i, j) - pca_min[j]) / (pca_max[j] - pca_min[j]);
+		}
+	}
+
 }
 
 void Image::pca_analysis() {
-	Mat projection_result;
     int num_components = 3;
 
-    cout << "Data = "<< endl << " "  << data << endl;
+//    cout << "Data = "<< endl << " "  << data << endl;
     // Perform a PCA:
     PCA pca(data, Mat(), CV_PCA_DATA_AS_ROW, num_components);
 
-    pca.project(data, projection_result);
+    pca.project(data, this->projection_result);
 
-    cout<<"PCA Projection Result:"<<endl;
-    cout<<projection_result<<endl;
+//    cout<<"PCA Projection Result:"<<endl;
+//    cout<<this->projection_result<<endl;
 }
 
 void Image::kmeans_analysis() {
-
+	  int clusterCount = 4;
+	  Mat labels;
+	  int attempts = 15;
+	  Mat centers;
+	  cout << "For 25-D " << endl;
+	  kmeans(normalizedData, clusterCount, labels, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 10000, 0.0001), attempts, KMEANS_PP_CENTERS, centers );
+	  cout << "Labels " << endl << labels << endl;
+//	  cout << "centers " << endl << centers << endl;
+	  cout << "For 3-D " << endl;
+	  kmeans(normalized_projection_result, clusterCount, labels, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 10000, 0.0001), attempts, KMEANS_PP_CENTERS, centers );
+	  cout << "Labels " << endl << labels << endl;
+//	  cout << "centers " << endl << centers << endl;
 }
 
 /* This function is used to write into the file which is sent as a parameter

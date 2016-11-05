@@ -42,12 +42,13 @@ int main(int argc, char *argv[]) {
 		texture.read_image(filename);
 
 		texture.texture_analysis();
+		cout << "done with texture analysis" << endl;
 		//Function that is used to write into the image file
 		texture.write_image(argv[2], texture.OutputImagedata, texture.width, texture.height);
 	}
 
-//	texture.print_pca_values();
 	texture.pca_analysis();
+	texture.print_pca_values();
 	texture.kmeans_analysis();
 	return 0;
 }

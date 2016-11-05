@@ -45,6 +45,9 @@ public:
 	double **coefficients;
 	int image_count;
 	cv::Mat data;
+	cv::Mat normalizedData;
+	cv::Mat projection_result;
+	cv::Mat normalized_projection_result;
 };
 
 #endif /* IMAGE_H_ */
